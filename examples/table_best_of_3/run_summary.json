@@ -1,0 +1,77 @@
+{
+  "run_id": "20261101-014540-c6af3b",
+  "prompt": null,
+  "subject": "a table",
+  "model": "triposr",
+  "textured": true,
+  "warnings": [],
+  "metrics": {
+    "selected_attempt": 1,
+    "seed": 142,
+    "mesh_ink_coverage": 0.9088,
+    "silhouette_iou": 0.5827,
+    "image_iou": 0.5774,
+    "ink_coverage": 1.0,
+    "clipped_ratio": 0.0,
+    "clip_sketch_to_views": 0.8278,
+    "clip_view_consistency": 0.9366,
+    "clip_text_to_views": 0.2719,
+    "faces": 84156,
+    "watertight": true,
+    "degenerate_face_ratio": 0.0,
+    "floaters_removed": 0,
+    "bbox_aspect_ratio": 0.4518
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "seed": 142,
+      "controlnet_scale": 1.0,
+      "image_iou": 0.5774,
+      "ink_coverage": 1.0,
+      "clipped_ratio": 0.0,
+      "gate_passed": true,
+      "silhouette_iou": 0.5827,
+      "outcome": "valid"
+    }
+  ],
+  "total_seconds": 35.41,
+  "peak_vram_gb": 2.68,
+  "peak_ram_gb": 5.12,
+  "validation": {
+    "glb": {
+      "file": "model.glb",
+      "size_mb": 3.19,
+      "vertices": 56925,
+      "faces": 84156,
+      "extents": [
+        1.0,
+        0.7528,
+        0.4518
+      ],
+      "min_axis_ratio": 0.4518,
+      "textured": true,
+      "vertex_colors": false,
+      "failed": [],
+      "passed": true
+    },
+    "obj": {
+      "file": "model.obj",
+      "size_mb": 9.69,
+      "vertices": 56925,
+      "faces": 84156,
+      "extents": [
+        1.0,
+        0.7528,
+        0.4518
+      ],
+      "min_axis_ratio": 0.4518,
+      "textured": true,
+      "vertex_colors": false,
+      "failed": [],
+      "passed": true
+    }
+  },
+  "device": "AMD Radeon RX 9070 XT",
+  "sketch_source": "Drawn with mouse strokes by the AI assistant while testing the app"
+}

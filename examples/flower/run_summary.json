@@ -1,0 +1,87 @@
+{
+  "run_id": "20261101-014320-77c61b",
+  "prompt": null,
+  "subject": "a flower",
+  "model": "triposr",
+  "textured": true,
+  "warnings": [],
+  "metrics": {
+    "selected_attempt": 2,
+    "seed": 43,
+    "mesh_ink_coverage": 0.8676,
+    "silhouette_iou": 0.7327,
+    "image_iou": 0.7423,
+    "ink_coverage": 0.9638,
+    "clipped_ratio": 0.0,
+    "clip_sketch_to_views": 0.7262,
+    "clip_view_consistency": 0.8536,
+    "clip_text_to_views": 0.2551,
+    "faces": 42044,
+    "watertight": true,
+    "degenerate_face_ratio": 0.0,
+    "floaters_removed": 3,
+    "bbox_aspect_ratio": 0.4627
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "seed": 42,
+      "controlnet_scale": 1.0,
+      "image_iou": 0.4188,
+      "ink_coverage": 0.4744,
+      "clipped_ratio": 0.0,
+      "gate_passed": false,
+      "outcome": "rejected before 3D"
+    },
+    {
+      "attempt": 2,
+      "seed": 43,
+      "controlnet_scale": 1.1,
+      "image_iou": 0.7423,
+      "ink_coverage": 0.9638,
+      "clipped_ratio": 0.0,
+      "gate_passed": true,
+      "silhouette_iou": 0.7327,
+      "outcome": "valid"
+    }
+  ],
+  "total_seconds": 43.59,
+  "peak_vram_gb": 2.68,
+  "peak_ram_gb": 5.12,
+  "validation": {
+    "glb": {
+      "file": "model.glb",
+      "size_mb": 2.37,
+      "vertices": 32659,
+      "faces": 42044,
+      "extents": [
+        0.8545,
+        1.0,
+        0.4627
+      ],
+      "min_axis_ratio": 0.4627,
+      "textured": true,
+      "vertex_colors": false,
+      "failed": [],
+      "passed": true
+    },
+    "obj": {
+      "file": "model.obj",
+      "size_mb": 5.21,
+      "vertices": 32659,
+      "faces": 42044,
+      "extents": [
+        0.8545,
+        1.0,
+        0.4627
+      ],
+      "min_axis_ratio": 0.4627,
+      "textured": true,
+      "vertex_colors": false,
+      "failed": [],
+      "passed": true
+    }
+  },
+  "device": "AMD Radeon RX 9070 XT",
+  "sketch_source": "Hand-drawn by the user"
+}

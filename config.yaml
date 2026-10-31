@@ -1,0 +1,166 @@
+# Sketch2Shape configuration. Single source of truth for every tunable.
+# Precedence: this file < S2S_* env vars < CLI --set key=value
+# Env var form: S2S_<SECTION>__<KEY>, e.g. S2S_SKETCH_TO_IMAGE__STEPS=30
+
+runtime:
+  backend: local            # local | remote_gpu
+  device: auto              # auto | cuda | directml | mps | cpu
+  gpu_index: auto           # auto = usable GPU with most memory, or a number
+  # Tried in order when device is auto
+  device_priority: [cuda, mps, directml, cpu]
+  dtype: auto               # auto | float16 | float32
+  dtype_fp16_devices: [cuda]
+  unload_between_stages: true
+  cpu_offload: true
+  attention_slicing: true
+  seed: 42
+  bytes_per_gb: 1073741824
+
+paths:
+  weights_dir: weights      # relative to the repo root
+  outputs_dir: outputs
+  third_party_dir: third_party
+
+preprocess:
+  size: 512
+  work_size: 1024           # large uploads are downscaled to this first
+  pad_ratio: 0.15           # room around the sketch, so generated objects are not cut off by the frame
+  dark_background_level: 110  # median border gray below this means light-on-dark, so invert
+  denoise_strength: 7
+  contrast_clip_limit: 2.0
+  contrast_grid: 8
+  binarize_block_size: 31
+  binarize_c: 10
+  ink_dark_level: 110       # keeps the inside of thick strokes solid
+  min_component_area: 12    # specks smaller than this are noise
+  resize_ink_level: 32
+  control_line_width: 3
+  fill_close_kernel: 9      # closes small gaps before the outline is filled
+  # A usable sketch has a foreground ratio in this range
+  min_ink_ratio: 0.001
+  max_ink_ratio: 0.4
+  max_components: 150       # more separate marks than this looks like noise or a photo
+
+sketch_to_image:
+  base_weights: sd15
+  controlnet_weights: sd15_scribble
+  weights_variant: fp16
+  # With no prompt, CLIP names the sketch from this list to guide generation
+  auto_subject: true
+  clip_weights: clip
+  subject_template: "a simple line drawing of {}"
+  subject_min_confidence: 0.2  # below this, default_subject is used
+  subject_labels: ["a chair", "a sofa", "a table", "a bed", "a shelf", "a desk lamp", "a floor lamp", "a car", "a truck", "a bus", "a motorcycle", "a bicycle", "an airplane", "a boat", "a rocket", "a house", "a tower", "a bridge", "a mug", "a bottle", "a bowl", "a teapot", "a vase", "a plate", "a spoon", "a knife", "a hammer", "a backpack", "a shoe", "a hat", "a guitar", "a robot", "a teddy bear", "a dog", "a cat", "a bird", "a fish", "a tree", "a flower", "a phone", "a laptop", "a camera", "a clock", "a sword", "a crown"]
+  scheduler: UniPCMultistepScheduler
+  min_image_std: 2.0        # below this the output is treated as a blank or NaN image
+  steps: 25
+  guidance_scale: 7.5
+  controlnet_scale: 1.0     # sketch faithfulness
+  prompt_template: "{subject}, single object, centered, full view, studio product render, plain white background, soft even lighting, high detail"
+  default_subject: "a 3D object"
+  negative_prompt: "multiple objects, cropped, text, watermark, shadow, busy background, low quality, blurry, deformed, flat, sketch, lineart"
+
+background:
+  rembg_model: isnet-general-use
+  output_size: 512
+  foreground_ratio: 0.85
+  alpha_level: 127
+  min_component_ratio: 0.01 # pieces smaller than this share of the largest are dropped
+  min_coverage: 0.01        # less foreground than this means removal failed
+
+image_to_3d:
+  primary: triposr
+  fallback: null
+  triposr:
+    weights: triposr
+    config_name: config.yaml
+    weight_name: model.ckpt
+    background_gray: 0.5
+    chunk_size: 8192
+    mc_resolution: 256
+    density_threshold: 25.0
+    bake_texture: true
+    texture_resolution: 1024
+    texture_padding: 4
+    texture_bleed_px: 8     # spreads color past UV island edges so seams don't sample black
+
+mesh_post:
+  merge_digits: 6
+  degenerate_height: 1.0e-8
+  min_body_ratio: 0.01      # separate pieces below this share of the largest are floaters
+  target_faces: 100000      # 0 turns decimation off
+  normalize_extent: 1.0
+  axis_order: [1, 2, 0]     # source axes for output x,y,z: TripoSR is Z-up, glTF is Y-up. Keep this a rotation.
+
+export:
+  formats: [glb, obj]       # glb and/or obj
+  min_vertices: 100
+  min_faces: 100
+  min_axis_ratio: 0.05      # smallest bbox axis / largest; below this counts as flat
+  max_file_mb: 200
+
+metrics:
+  clip_weights: clip
+  n_views: 8
+  camera_distance: 1.9
+  camera_fov_deg: 40
+  render_size: 512
+  render_ambient: 0.35
+  iou_size: 256
+  iou_fit: 0.9
+  # Below these a run counts as low fidelity. Calibrated in Phase 4; see docs/METRICS.md.
+  min_ink_coverage: 0.7     # share of the sketch's strokes that landed on the object
+  ink_tolerance_px: 15
+  min_silhouette_iou: 0.2   # only catches a collapsed mesh; open or broken sketches score low on IoU
+  max_clipped_ratio: 0.02   # share of the image border covered by the object
+  match_view_size: 512
+  match_color: [0, 200, 80]
+  miss_color: [230, 30, 30]
+
+retry:
+  max_attempts: 3
+  seed_step: 1
+  scale_step: 0.1           # each retry follows the sketch a little more strictly
+  keep_attempts: false      # keep rejected attempts' files for debugging
+
+variants:
+  count: 3
+  seed_step: 100            # far enough apart that variants never share seeds with retries
+  max_attempts: 1           # the variants themselves are the alternatives, so skip retries
+
+# Third-party source that has no PyPI package. Fetched at setup in Phase 1.
+third_party:
+  triposr:
+    repo_url: https://github.com/VAST-AI-Research/TripoSR
+    commit: 107cefdc244c39106fa830359024f6a2f1c78871
+
+app:
+  host: 127.0.0.1
+  port: 7860
+  share: false
+  analytics: false          # Gradio usage reporting, off by default
+  canvas_size: [768, 768]
+  brush_size: 5
+  steps_range: [5, 50]
+  controlnet_scale_range: [0.2, 2.0]
+  controlnet_scale_step: 0.05
+
+# Weights fetched by scripts/download_weights.py.
+# Keyed name -> Hugging Face repo, plus optional file filters.
+weights:
+  sd15:
+    repo_id: stable-diffusion-v1-5/stable-diffusion-v1-5
+    allow_patterns: ["model_index.json", "scheduler/*", "tokenizer/*", "*/config.json", "text_encoder/*.fp16.safetensors", "unet/*.fp16.safetensors", "vae/*.fp16.safetensors", "feature_extractor/*"]
+  sd15_scribble:
+    repo_id: lllyasviel/control_v11p_sd15_scribble
+    allow_patterns: ["config.json", "diffusion_pytorch_model.fp16.safetensors"]
+  triposr:
+    repo_id: stabilityai/TripoSR
+    allow_patterns: ["config.yaml", "model.ckpt"]
+  dino_config:              # TripoSR reads this from the Hugging Face cache at load time
+    repo_id: facebook/dino-vitb16
+    allow_patterns: ["config.json"]
+    use_hf_cache: true
+  clip:
+    repo_id: openai/clip-vit-base-patch32
+    allow_patterns: ["*.json", "*.txt", "pytorch_model.bin"]
