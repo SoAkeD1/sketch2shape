@@ -6,7 +6,7 @@
 
 Draw in the app or upload an image. A text prompt is optional. Every image here is from a real run.
 
-**[Demo video](demo/sketch2shape_demo.mp4)** · **[Samples](examples/)** · **[Install](#install-windows-amd-gpu)** · **[Run](#run)** · **[Limitations](#limitations)** · **[Report](REPORT.md)** · **[Attribution](ATTRIBUTION.md)**
+**[All deliverables](DELIVERABLES.md)** · **[Demo video](demo/sketch2shape_demo.mp4)** · **[Samples](examples/)** · **[Install](#install-windows-amd-gpu)** · **[Run](#run)** · **[Limitations](#limitations)** · **[Report](REPORT.md)** · **[Attribution](ATTRIBUTION.md)**
 
 Built for TechZephyr 4.0, IIT Bhubaneswar. Models, libraries and AI-assistant use are disclosed in [ATTRIBUTION.md](ATTRIBUTION.md).
 
