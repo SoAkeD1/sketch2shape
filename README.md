@@ -1,10 +1,114 @@
 # Sketch2Shape
 
-Turn a single hand-drawn sketch into a textured 3D model you can open in any 3D software. Draw in the app or upload an image. A text prompt is optional.
+**Draw one object. Get a textured 3D model you can turn around.**
 
-Built for TechZephyr 4.0, IIT Bhubaneswar. Models, libraries and AI-assistant use are disclosed in [ATTRIBUTION.md](ATTRIBUTION.md). The project report is `REPORT.md`. The demo video is [demo/sketch2shape_demo.mp4](demo/sketch2shape_demo.mp4).
+![Sketch2Shape: a drawn house next to the textured 3D model made from it](docs/images/result_house.png)
 
-## How it works
+Draw in the app or upload an image. A text prompt is optional. Every image here is from a real run.
+
+**[Demo video](demo/sketch2shape_demo.mp4)** · **[Samples](examples/)** · **[Install](#install-windows-amd-gpu)** · **[Run](#run)** · **[Limitations](#limitations)** · **[Report](REPORT.md)** · **[Attribution](ATTRIBUTION.md)**
+
+Built for TechZephyr 4.0, IIT Bhubaneswar. Models, libraries and AI-assistant use are disclosed in [ATTRIBUTION.md](ATTRIBUTION.md).
+
+| One model | Peak VRAM | Valid models | Strokes on the model | Exports |
+|---|---|---|---|---|
+| **31 s** on an RX 9070 XT | **2.68 GB** | **18 of 18** | **97%** on average | **.glb, .obj** |
+
+## See it run
+
+![Drawing a house, watching the live stages, then turning the finished model](docs/images/demo.gif)
+
+*Sped up: drawing about 3x, generating about 14x.*
+
+## What you can do
+
+Click any section to open it.
+
+<details open>
+<summary><b>Watch your sketch become an object</b></summary>
+<br>
+
+Each stage shows live, with its real time and the image it produced.
+
+![Live stages next to the generated image](docs/images/live_stages.png)
+
+</details>
+
+<details>
+<summary><b>See how closely it followed your lines</b></summary>
+<br>
+
+Solid teal strokes are on the model, and dashed red strokes missed it. This house scored 98%. The score measures how well strokes are followed, not how good the model looks.
+
+<img src="docs/images/sketch_match.png" width="480" alt="Sketch strokes drawn over the model's front view">
+
+</details>
+
+<details>
+<summary><b>Upload an image and describe it</b></summary>
+<br>
+
+This mug sketch was uploaded with the prompt "a green glass mug". It scored 98%.
+
+![Uploaded mug sketch and a green glass 3D mug](docs/images/upload_mug.png)
+
+</details>
+
+<details>
+<summary><b>Generate 3 variants and compare them</b></summary>
+<br>
+
+Three seeds, ranked best match first (97%, 96%, 91%). Click a variant to view it. These tables also show a known weakness: thick legs.
+
+![Three ranked table variants](docs/images/variants_table.png)
+
+</details>
+
+<details>
+<summary><b>Download the model and check how it was made</b></summary>
+<br>
+
+Every file is reloaded and checked before it is offered. The details panel shows the journey, quality, performance, checks, geometry and raw data.
+
+![Download buttons and the details panel](docs/images/downloads.png)
+
+</details>
+
+<details>
+<summary><b>Use dark mode, and get clear errors</b></summary>
+<br>
+
+Pressing Generate on an empty canvas says what to do instead of failing silently.
+
+![Dark theme with an error message](docs/images/dark_theme.png)
+
+</details>
+
+## From sketch to model
+
+A sample from [examples/vase](examples/vase/), with no prompt:
+
+| 1. Clean sketch | 2. Generated image | 3. Sketch match |
+|---|---|---|
+| <img src="examples/vase/sketch.png" width="260" alt="Cleaned vase sketch"> | <img src="examples/vase/generated.png" width="260" alt="Generated vase image"> | <img src="examples/vase/sketch_match.png" width="260" alt="Strokes over the vase model"> |
+
+**4. The 3D model from 8 sides**
+
+![The vase model rendered from 8 sides](examples/vase/views.png)
+
+| Stage | What it does | Tool |
+|---|---|---|
+| Preprocess | Handles background, inverts, denoises, adjusts contrast, centers | OpenCV |
+| Understand | Names the sketch when there is no prompt | CLIP |
+| Sketch to image | Paints an object that follows your lines | SD 1.5 + ControlNet Scribble |
+| Background removal | Isolates the object | rembg |
+| Image to 3D | Builds real geometry | TripoSR |
+| Mesh cleanup | Cleans, decimates, bakes the texture, normalizes | trimesh, xatlas |
+| Export and validate | Writes files, reloads them, checks them, retries on failure | trimesh |
+
+<details>
+<summary><b>Full architecture flowchart</b></summary>
+<br>
 
 ```mermaid
 flowchart TD
@@ -24,6 +128,8 @@ flowchart TD
     K -- Failed, no tries left --> L[Stage-named error]
     K -- Passed --> M[Metrics, preview, download, run_meta.json]
 ```
+
+</details>
 
 ## Requirements
 
@@ -142,6 +248,10 @@ python cli.py --input my_sketch.png --set sketch_to_image.controlnet_scale=1.1
 ```
 
 Unknown keys raise an error, so typos can't pass silently.
+
+<details>
+<summary><b>All settings</b></summary>
+<br>
 
 | Key | Default | Meaning |
 |---|---|---|
@@ -265,6 +375,8 @@ Unknown keys raise an error, so typos can't pass silently.
 | `app.controlnet_scale_range` | `[0.2, 2.0]` | Faithfulness slider range |
 | `app.controlnet_scale_step` | `0.05` | Faithfulness slider step |
 
+</details>
+
 `weights.<name>` entries list each Hugging Face repository (`repo_id`), the files to fetch (`allow_patterns`), and whether to use the Hugging Face cache (`use_hf_cache`).
 
 ## Model choices
@@ -349,6 +461,10 @@ python tests/regression_check.py
 
 ## Troubleshooting
 
+<details>
+<summary><b>Common problems and fixes</b></summary>
+<br>
+
 | Problem | Try |
 |---|---|
 | `Activate.ps1` is blocked by execution policy | Run `Set-ExecutionPolicy -Scope Process Bypass`, then activate again. This lasts for that window only |
@@ -366,3 +482,5 @@ python tests/regression_check.py
 | Result ignores the sketch | Raise **Sketch faithfulness**, change the seed, or add a prompt |
 | "does not look like a line sketch" | Use line art on a plain background |
 | `git` or path errors | Use a short folder path, such as `C:\s2s` |
+
+</details>
