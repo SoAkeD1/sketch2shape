@@ -64,6 +64,7 @@ class RunResult:
     metrics: dict = field(default_factory=dict)
     attempts: list = field(default_factory=list)
     on_stage: Callable = field(default=None, repr=False)
+    on_artifact: Callable = field(default=None, repr=False)
     current_attempt: int = field(default=1, repr=False)
 
 
@@ -93,6 +94,11 @@ def _stage(name, error_cls, result, cfg):
     log.info("%s", record)
 
 
+def _notify(result, stem, path):
+    if result.on_artifact:
+        result.on_artifact(stem, path)
+
+
 def _attempt(number, prepared, guidance, cfg, device, dtype, result, folder, force_3d):
     """One generate-to-export pass. Returns (attempt record, state needed if it is selected)."""
     settings = cfg["sketch_to_image"]
@@ -107,12 +113,14 @@ def _attempt(number, prepared, guidance, cfg, device, dtype, result, folder, for
             sketch_to_image.unload()
             free_gpu_memory()
     image.save(folder / "04_generated.png")
+    _notify(result, "04_generated", folder / "04_generated.png")
 
     with _stage("background", BackgroundError, result, cfg):
         rgba, foreground_mask = background.isolate(image, cfg)
         if release:
             background.unload()
     rgba.save(folder / "05_foreground.png")
+    _notify(result, "05_foreground", folder / "05_foreground.png")
     gate = metrics.image_gate(prepared.mask, prepared.control, foreground_mask, cfg)
     record.update(
         image_iou=gate["image_iou"], ink_coverage=gate["ink_coverage"],
@@ -184,6 +192,8 @@ def _publish(best_folder, best, result, cfg):
         shutil.copytree(item, target) if item.is_dir() else shutil.copy2(item, target)
     result.files["04_generated"] = result.run_dir / "04_generated.png"
     result.files["05_foreground"] = result.run_dir / "05_foreground.png"
+    _notify(result, "04_generated", result.files["04_generated"])
+    _notify(result, "05_foreground", result.files["05_foreground"])
     for fmt, path in best["exported"].items():
         result.files[fmt] = result.run_dir / path.relative_to(best_folder)
     if not cfg["retry"]["keep_attempts"]:
@@ -220,14 +230,17 @@ def _save_image(image, name, result):
     path = result.run_dir / name
     image.save(path)
     result.files[path.stem] = path
+    _notify(result, path.stem, path)
 
 
-def run(sketch, prompt=None, overrides=None, cfg=None, on_stage=None):
-    """on_stage, if given, is called with each stage name from STAGES as it starts."""
+def run(sketch, prompt=None, overrides=None, cfg=None, on_stage=None, on_artifact=None):
+    """on_stage is called with each stage name from STAGES as it starts; on_artifact with (name, path) per image."""
     global _runs_in_process
     cfg = apply_overrides(cfg or load_config(), overrides)
     run_id = f"{datetime.now().strftime(RUN_ID_FORMAT)}-{uuid.uuid4().hex[:RUN_ID_SUFFIX_LENGTH]}"
-    result = RunResult(run_id, resolve_path(cfg["paths"]["outputs_dir"]) / run_id, on_stage=on_stage)
+    result = RunResult(
+        run_id, resolve_path(cfg["paths"]["outputs_dir"]) / run_id, on_stage=on_stage, on_artifact=on_artifact
+    )
     result.run_dir.mkdir(parents=True)
     device, dtype = pick_device(cfg)
     base = {
@@ -301,10 +314,10 @@ def _variant_rank(result):
     return not result.warnings, result.metrics["mesh_ink_coverage"], result.metrics["silhouette_iou"]
 
 
-def run_variants(sketch, prompt=None, overrides=None, cfg=None, on_stage=None):
+def run_variants(sketch, prompt=None, overrides=None, cfg=None, on_stage=None, on_artifact=None):
     """Generate several models from one sketch. Returns (results best first, errors of failed variants).
 
-    on_stage, if given, is called with (variant number, stage name).
+    on_stage, if given, is called with (variant number, stage name); on_artifact with (variant number, name, path).
     """
     cfg = apply_overrides(cfg or load_config(), overrides)
     settings = cfg["variants"]
@@ -316,8 +329,9 @@ def run_variants(sketch, prompt=None, overrides=None, cfg=None, on_stage=None):
             f"retry.max_attempts={settings['max_attempts']}",
         ]
         report = (lambda name, n=number: on_stage(n, name)) if on_stage else None
+        artifact = (lambda stem, path, n=number: on_artifact(n, stem, path)) if on_artifact else None
         try:
-            results.append(run(sketch, prompt, variant_overrides, cfg, report))
+            results.append(run(sketch, prompt, variant_overrides, cfg, report, artifact))
         except NOT_RETRYABLE:
             raise
         except Sketch2ShapeError as exc:

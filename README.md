@@ -2,7 +2,7 @@
 
 Turn a single hand-drawn sketch into a textured 3D model you can open in any 3D software. Draw in the app or upload an image. A text prompt is optional.
 
-Built for TechZephyr 4.0, IIT Bhubaneswar. Models, libraries and AI-assistant use are disclosed in [ATTRIBUTION.md](ATTRIBUTION.md). The project report is `REPORT.md`.
+Built for TechZephyr 4.0, IIT Bhubaneswar. Models, libraries and AI-assistant use are disclosed in [ATTRIBUTION.md](ATTRIBUTION.md). The project report is `REPORT.md`. The demo video is [demo/sketch2shape_demo.mp4](demo/sketch2shape_demo.mp4).
 
 ## How it works
 
@@ -111,9 +111,9 @@ python app.py
 
 Open http://127.0.0.1:7860 once the terminal prints the address. Startup took about 60 s here, and the page is blank until then.
 
-1. On the **Draw** tab, click the **Brush** icon first, then draw. Or use the **Upload** tab.
-2. Optionally type a prompt.
-3. Press **Generate**.
+1. On the **Draw** tab, just start drawing. Or use the **Upload** tab.
+2. Optionally type a prompt, or tap a suggestion such as **+ wood**.
+3. Press **Generate 3D model** and watch the live stages. When the model lands, drag it to turn it around.
 
 **Terminal:**
 
@@ -125,7 +125,7 @@ The exit code is 0 on success and 1 on failure, with a stage-named error. Add `-
 
 **Sketch match and variants**
 
-- **Sketch match view:** every run draws your strokes over the model's front view. Green strokes are on the model, and red strokes missed it. The score above the preview is the share of strokes on the model.
+- **Sketch match view:** every run draws your strokes over the model's front view. Solid teal strokes are on the model, and dashed red strokes missed it. The score above the preview is the share of strokes on the model.
 - **Generate 3 variants:** makes 3 models with different seeds, about 2.5 minutes in total, and ranks them. Ranking uses warnings first, then sketch match, then silhouette IoU. Click a variant to view it. That also puts its seed in Advanced settings, so **Generate** starts from it, then retries with new seeds if that attempt fails a quality check.
 
 The ranking measures how well strokes are followed, not how good the model looks, so check the variants yourself.
@@ -236,7 +236,16 @@ Unknown keys raise an error, so typos can't pass silently.
 | `metrics.max_clipped_ratio` | `0.02` | Retry when the object covers more of the image border |
 | `metrics.match_view_size` | `512` | Sketch match image size |
 | `metrics.match_color` | `[0, 200, 80]` | Strokes on the model |
-| `metrics.miss_color` | `[230, 30, 30]` | Strokes that missed |
+| `metrics.miss_color` | `[214, 69, 69]` | Strokes that missed |
+| `metrics.miss_dash_px` | `10` | Dash length of missed strokes |
+| `paths.ui_dir` | `ui` | Theme and page behavior files |
+| `app.canvas_height` | `620` | Canvas height on screen |
+| `app.fonts_url` | see `config.yaml` | Web fonts |
+| `app.seed_max` | `2147483647` | Largest shuffled seed |
+| `app.variant_estimate_seconds` | `50` | Used in the variants button's time estimate |
+| `app.prompt_chips` | `list of 6 items` | Prompt suggestions |
+| `app.model_height` | `400` | 3D preview height |
+| `app.column_min_width` | `360` | Column width before the layout stacks |
 | `variants.count` | `3` | Models per variants run |
 | `variants.seed_step` | `100` | Seed change per variant |
 | `variants.max_attempts` | `1` | Tries per variant |
@@ -316,6 +325,14 @@ Windows 11, RX 9070 XT 16 GB, Ryzen 7 9800X3D, 14.9 GB RAM, 18 consecutive runs.
 
 The test set has only 2 distinct user sketches plus scripted variations, so this is not a general accuracy claim. See [docs/METRICS.md](docs/METRICS.md).
 
+## Testing
+
+This runs every promised feature on the real models, at reduced settings, and exits 1 if anything fails. It takes a few minutes with a GPU.
+
+```powershell
+python tests/regression_check.py
+```
+
 ## Limitations
 
 - **One view only:** backs and sides are guesses and are often thin or skewed.
@@ -343,7 +360,8 @@ The test set has only 2 distinct user sketches plus scripted variations, so this
 | Texture lost, or `notes` mentions baking | The run kept vertex colors because OpenGL was unavailable. Update graphics drivers |
 | Slow first run | Normal: models load from disk, and first-time setup downloads them |
 | Blank page at startup | The app is still starting. Wait for the address in the terminal |
-| Canvas won't draw | Click the **Brush** icon first |
+| Canvas won't draw | Click the **Brush** icon. The app selects it on load, but this can be undone by picking another tool |
+| Plain fonts | Inter and JetBrains Mono load from Google Fonts. Without internet the system font is used, and everything still works |
 | `missing weights` error | Run `python scripts/download_weights.py` |
 | Result ignores the sketch | Raise **Sketch faithfulness**, change the seed, or add a prompt |
 | "does not look like a line sketch" | Use line art on a plain background |

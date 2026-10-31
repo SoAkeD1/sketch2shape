@@ -14,8 +14,12 @@ Every model, library, service and AI assistant this project uses.
 | 2026-11-01, Phase 6 | Claude Code (Claude Opus 5.5, Anthropic), desktop app | Project report, slides outline, repository checks | Drafting from measured results within the time limit |
 | 2026-11-01, Phase 7 | Claude Code (Claude Opus 5.5, Anthropic), desktop app | Sketch match view, ranked variants, testing them | Proposed the ideas; the user chose which to build |
 | 2026-11-01, Phase 9 | Claude Code (Claude Opus 5.5, Anthropic), desktop app | Generated and checked the sample results in `examples/` | Packaging real runs for the required output artifact |
+| 2026-11-01, Phase 8 | Claude Code (Claude Opus 5.5, Anthropic), desktop app, with Claude Design | Claude Design produced the Living Notebook design from the team's brief. Claude Code implemented it, and wrote the regression test | A polished, engaging interface within the time limit |
+| 2026-11-01, demo video | Claude Code (Claude Opus 5.5, Anthropic), desktop app | Recorded the demo by controlling the real app, wrote the narration and edited the video | Producing a real recording within the time limit |
 
-The team directed the work, chose priorities, and drew the user test sketches.
+Demo video tools: Kokoro-82M text-to-speech (https://huggingface.co/hexgrad/Kokoro-82M, Apache-2.0) for narration, Playwright and Chrome for recording, FFmpeg for editing. None of these are part of the app.
+
+The team directed the work, chose priorities, drew the user test sketches, and made the final edit of the demo video.
 
 ## Responsible use notes
 - Stable Diffusion's optional safety checker is turned off in `sketch_to_image.py`. It often misfires on plain object renders, and its extra model adds memory use. Outputs are not filtered, so users stay responsible for what they generate, under the OpenRAIL-M use restrictions.
@@ -37,6 +41,8 @@ Used directly: PyTorch (AMD ROCm build or CUDA build), diffusers, transformers, 
 TripoSR source code (https://github.com/VAST-AI-Research/TripoSR, MIT, commit in `config.yaml`) is downloaded at setup and is not copied into this repository. `image_to_3d.py` adapts how it loads, without changing its files.
 
 The test viewer used once to check `.glb` files, Google's `<model-viewer>`, is not part of the project.
+
+Fonts: Inter and JetBrains Mono, loaded from Google Fonts (`fonts.googleapis.com`), under the SIL Open Font License.
 
 ## External services
 - Hugging Face Hub: weight downloads, plus a config check when TripoSR loads.

@@ -20,6 +20,7 @@ paths:
   weights_dir: weights      # relative to the repo root
   outputs_dir: outputs
   third_party_dir: third_party
+  ui_dir: ui
 
 preprocess:
   size: 512
@@ -114,8 +115,9 @@ metrics:
   min_silhouette_iou: 0.2   # only catches a collapsed mesh; open or broken sketches score low on IoU
   max_clipped_ratio: 0.02   # share of the image border covered by the object
   match_view_size: 512
-  match_color: [0, 200, 80]
-  miss_color: [230, 30, 30]
+  match_color: [0, 137, 123]
+  miss_color: [214, 69, 69]
+  miss_dash_px: 10
 
 retry:
   max_attempts: 3
@@ -140,7 +142,14 @@ app:
   share: false
   analytics: false          # Gradio usage reporting, off by default
   canvas_size: [768, 768]
+  canvas_height: 620        # height of the canvas on screen
   brush_size: 5
+  fonts_url: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+  seed_max: 2147483647
+  variant_estimate_seconds: 50
+  prompt_chips: ["wood", "red ceramic", "brushed metal", "matte black", "toy-like", "realistic"]
+  model_height: 400
+  column_min_width: 360
   steps_range: [5, 50]
   controlnet_scale_range: [0.2, 2.0]
   controlnet_scale_step: 0.05

@@ -107,7 +107,10 @@ def sketch_match(sketch_ink, mesh, front_view, settings):
     grown = cv2.dilate(fitted_shape, np.ones((tolerance, tolerance), np.uint8)) > 0
     canvas = _fit_to(np.asarray(front_view), shape, size, fit, background=OPAQUE)
     canvas[fitted_ink & grown] = settings["match_color"]
-    canvas[fitted_ink & ~grown] = settings["miss_color"]
+    rows, columns = np.indices(fitted_ink.shape)
+    period = settings["miss_dash_px"]
+    # Missed strokes are dashed too, so the two states don't rely on color alone
+    canvas[fitted_ink & ~grown & (((rows + columns) // period) % 2 == 0)] = settings["miss_color"]
     coverage = float((fitted_ink & grown).sum() / max(1, fitted_ink.sum()))
     return Image.fromarray(canvas), round(coverage, 4)
 
