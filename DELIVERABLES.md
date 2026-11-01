@@ -7,7 +7,7 @@
 | Project report | [REPORT.md](REPORT.md) |
 | Demo video | [demo/sketch2shape_demo.mp4](demo/sketch2shape_demo.mp4) |
 | Generated models and example results | [examples/](examples/) |
-| Slides outline | [docs/SLIDES_OUTLINE.md](docs/SLIDES_OUTLINE.md) |
+| Presentation slides | [docs/Sketch2Shape_slides.pptx](docs/Sketch2Shape_slides.pptx), outline in [docs/SLIDES_OUTLINE.md](docs/SLIDES_OUTLINE.md) |
 | Attribution and AI assistant log | [ATTRIBUTION.md](ATTRIBUTION.md) |
 | Datasets | None used. See [Datasets in ATTRIBUTION.md](ATTRIBUTION.md#datasets) and [REPORT.md](REPORT.md) |
 | Metrics | [docs/METRICS.md](docs/METRICS.md) |
